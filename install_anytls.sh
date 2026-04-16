@@ -72,8 +72,19 @@ install_deps() {
 }
 
 get_latest_version() {
-    LATEST_VER=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
+    # 方法1: GitHub API
+    LATEST_VER=$(curl -s --connect-timeout 5 "https://api.github.com/repos/${REPO}/releases/latest" \
         | jq -r '.tag_name' 2>/dev/null)
+    # 方法2: 通过重定向获取
+    if [[ -z "$LATEST_VER" || "$LATEST_VER" == "null" ]]; then
+        LATEST_VER=$(curl -sI --connect-timeout 5 "https://github.com/${REPO}/releases/latest" \
+            | grep -i "^location:" | sed 's/.*tag\///' | tr -d '\r\n ')
+    fi
+    # 方法3: 页面抓取
+    if [[ -z "$LATEST_VER" || "$LATEST_VER" == "null" ]]; then
+        LATEST_VER=$(curl -s --connect-timeout 5 "https://github.com/${REPO}/releases" \
+            | grep -oP '(?<=/releases/tag/)[^"]+' | head -1)
+    fi
     if [[ -z "$LATEST_VER" || "$LATEST_VER" == "null" ]]; then
         err "无法获取最新版本号，请检查网络"
         exit 1
