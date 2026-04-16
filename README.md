@@ -1,13 +1,6 @@
-# AnyTLS 一键安装脚本 - 对接 Xboard
+# NodeRS-AnyTLS 一键安装脚本 - 对接 Xboard
 
-一键部署 AnyTLS 服务端，自动对接 Xboard 面板。
-
-## 支持系统
-
-- Ubuntu 18.04+
-- Debian 10+
-- CentOS 7+
-- Rocky Linux / Alma Linux
+基于 [MoeclubM/NodeRS-AnyTLS](https://github.com/MoeclubM/NodeRS-AnyTLS)，一键部署 AnyTLS 节点并对接 Xboard 面板。
 
 ## 一键安装
 
@@ -15,54 +8,41 @@
 bash <(curl -Ls https://raw.githubusercontent.com/Mike09811/xboard-anytls/main/install_anytls.sh)
 ```
 
+安装时会要求输入：
+- Xboard 面板地址
+- 通信密钥 (server_token)
+- 节点 ID
+- TLS 证书方式（ACME / 自签名 / 已有证书）
+
 ## 管理命令
 
 ```bash
-bash install_anytls.sh install    # 安装
-bash install_anytls.sh update     # 更新
+bash install_anytls.sh install    # 安装节点
+bash install_anytls.sh update     # 更新程序
 bash install_anytls.sh uninstall  # 卸载
-bash install_anytls.sh start      # 启动
-bash install_anytls.sh stop       # 停止
-bash install_anytls.sh restart    # 重启
 bash install_anytls.sh status     # 查看状态
+bash install_anytls.sh logs       # 查看日志
 bash install_anytls.sh config     # 查看配置
-bash install_anytls.sh xboard     # 查看 Xboard 对接信息
+bash install_anytls.sh restart 6  # 重启节点(ID=6)
 ```
 
-不带参数运行显示交互式菜单：
+不带参数运行显示交互式菜单。
+
+## 服务管理
 
 ```bash
-bash install_anytls.sh
-```
-
-## Xboard 面板对接
-
-安装完成后脚本会自动输出对接信息：
-
-- 节点地址（服务器 IP）
-- 连接端口
-- 连接密码
-
-在 Xboard 面板添加节点时填入对应字段即可。随时查看：
-
-```bash
-bash install_anytls.sh xboard
+systemctl status noders-anytls-6     # 状态
+systemctl restart noders-anytls-6    # 重启
+journalctl -u noders-anytls-6 -f     # 日志
 ```
 
 ## 文件路径
 
 | 文件 | 路径 |
 |------|------|
-| 二进制文件 | `/opt/anytls/anytls-server` |
-| 配置文件 | `/opt/anytls/config.json` |
-| 安装信息 | `/opt/anytls/install_info` |
-| Systemd 服务 | `/etc/systemd/system/anytls.service` |
-
-## 查看日志
-
-```bash
-journalctl -u anytls -f
-```
+| 二进制 | `/usr/local/bin/noders-anytls` |
+| 配置目录 | `/etc/noders/anytls/nodes/` |
+| 节点配置 | `/etc/noders/anytls/nodes/<node_id>.toml` |
 
 ## License
 
