@@ -57,14 +57,32 @@ get_arch() {
     info "架构: ${ARCH}"
 }
 
+spinner() {
+    local pid=$1 msg=$2
+    local chars='|/-\'
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        i=1
+        printf "\r  [%c] %s" "${chars:$i:1}" "$msg"
+        sleep 0.3
+    done
+    printf "\r                                                  \r"
+}
+
 install_deps() {
     info "安装依赖..."
     export DEBIAN_FRONTEND=noninteractive
     if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
-        apt-get update -qq 2>&1 | tail -1
-        apt-get install -y -qq curl wget jq 2>&1 | tail -1
+        (apt-get update -qq >/dev/null 2>&1) &
+        spinner $! "更新软件源..."
+        wait $! 2>/dev/null
+        (apt-get install -y -qq curl wget jq >/dev/null 2>&1) &
+        spinner $! "安装 curl wget jq..."
+        wait $! 2>/dev/null
     else
-        yum install -y -q curl wget jq 2>&1 | tail -1
+        (yum install -y -q curl wget jq >/dev/null 2>&1) &
+        spinner $! "安装 curl wget jq..."
+        wait $! 2>/dev/null
     fi
     info "依赖就绪"
 }
