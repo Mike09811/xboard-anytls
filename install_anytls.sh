@@ -4,7 +4,7 @@
 # 支持: Ubuntu / Debian / CentOS / Rocky / Alma
 # 用法: bash install_anytls.sh
 # ============================================================
-set -e
+# set -e removed: using manual error handlinguo pipefail
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -59,11 +59,12 @@ get_arch() {
 
 install_deps() {
     info "安装依赖..."
+    export DEBIAN_FRONTEND=noninteractive
     if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
-        apt-get update -y >/dev/null 2>&1
-        apt-get install -y curl wget jq >/dev/null 2>&1
+        apt-get update -qq 2>&1 | tail -1
+        apt-get install -y -qq curl wget jq 2>&1 | tail -1
     else
-        yum install -y curl wget jq >/dev/null 2>&1
+        yum install -y -q curl wget jq 2>&1 | tail -1
     fi
     info "依赖就绪"
 }
@@ -83,7 +84,7 @@ download_anytls() {
     local url="https://github.com/${REPO}/releases/download/${LATEST_VER}/${fn}"
     info "下载 AnyTLS ${LATEST_VER}..."
     mkdir -p "${DIR}"
-    if ! curl -L -o "/tmp/${fn}" "${url}"; then
+    if ! curl -L --progress-bar -o "/tmp/${fn}" "${url}"; then
         err "下载失败，请检查网络"
         exit 1
     fi
