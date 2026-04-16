@@ -4,7 +4,7 @@
 # 支持: Ubuntu / Debian / CentOS / Rocky / Alma
 # 用法: bash install_anytls.sh
 # ============================================================
-# set -e removed: using manual error handlinguo pipefail
+
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -57,32 +57,16 @@ get_arch() {
     info "架构: ${ARCH}"
 }
 
-spinner() {
-    local pid=$1 msg=$2
-    local chars='|/-\'
-    local i=0
-    while kill -0 "$pid" 2>/dev/null; do
-        i=1
-        printf "\r  [%c] %s" "${chars:$i:1}" "$msg"
-        sleep 0.3
-    done
-    printf "\r                                                  \r"
-}
-
 install_deps() {
-    info "安装依赖..."
     export DEBIAN_FRONTEND=noninteractive
     if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
-        (apt-get update -qq >/dev/null 2>&1) &
-        spinner $! "更新软件源..."
-        wait $! 2>/dev/null
-        (apt-get install -y -qq curl wget jq >/dev/null 2>&1) &
-        spinner $! "安装 curl wget jq..."
-        wait $! 2>/dev/null
+        info "更新软件源..."
+        apt-get update -y 2>&1 | grep -E "Hit|Get|Fetched|Reading" || true
+        info "安装 curl wget jq..."
+        apt-get install -y curl wget jq 2>&1 | grep -E "is already|newly installed|Setting up" || true
     else
-        (yum install -y -q curl wget jq >/dev/null 2>&1) &
-        spinner $! "安装 curl wget jq..."
-        wait $! 2>/dev/null
+        info "安装 curl wget jq..."
+        yum install -y curl wget jq 2>&1 | grep -E "already installed|Installing|Complete" || true
     fi
     info "依赖就绪"
 }
