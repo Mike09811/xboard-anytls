@@ -8,6 +8,7 @@ CYAN='\033[0;36m'; PLAIN='\033[0m'
 
 INSTALL_URL="https://raw.githubusercontent.com/MoeclubM/NodeRS-AnyTLS/main/scripts/install.sh"
 UPGRADE_URL="https://raw.githubusercontent.com/MoeclubM/NodeRS-AnyTLS/main/scripts/upgrade.sh"
+BBR_URL="https://github.com/teddysun/across/raw/master/bbr.sh"
 
 info()   { echo -e "${GREEN}[INFO]${PLAIN} $1"; }
 warn()   { echo -e "${YELLOW}[WARN]${PLAIN} $1"; }
@@ -155,6 +156,13 @@ do_config() {
     echo ""
 }
 
+do_bbr() {
+    header "安装 BBR 加速"
+    check_root
+    info "下载并运行 BBR 脚本..."
+    curl -Lso- "${BBR_URL}" | bash
+}
+
 show_menu() {
     header "NodeRS-AnyTLS 管理 - Xboard 对接"
     echo -e "  ${GREEN}1.${PLAIN} 安装节点"
@@ -164,9 +172,10 @@ show_menu() {
     echo -e "  ${GREEN}5.${PLAIN} 查看日志"
     echo -e "  ${GREEN}6.${PLAIN} 查看配置"
     echo -e "  ${GREEN}7.${PLAIN} 重启节点"
+    echo -e "  ${GREEN}8.${PLAIN} 安装 BBR 加速"
     echo -e "  ${GREEN}0.${PLAIN} 退出"
     echo ""
-    read -rp "$(echo -e "${GREEN}请选择 [0-7]: ${PLAIN}")" choice
+    read -rp "$(echo -e "${GREEN}请选择 [0-8]: ${PLAIN}")" choice
     case "$choice" in
         1) do_install ;;
         2) do_update ;;
@@ -181,6 +190,7 @@ show_menu() {
             systemctl restart "noders-anytls-${NID}"
             info "已重启 noders-anytls-${NID}"
             ;;
+        8) do_bbr ;;
         0) exit 0 ;;
         *) err "无效选择" ;;
     esac
@@ -199,5 +209,6 @@ case "${1:-}" in
         systemctl restart "noders-anytls-${NID}"
         info "已重启 noders-anytls-${NID}"
         ;;
+    bbr)       do_bbr ;;
     *)         show_menu ;;
 esac
