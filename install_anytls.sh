@@ -17,7 +17,7 @@ BIN="$DIR/anytls-server"
 CONF="$DIR/config.json"
 SVC="anytls"
 SVCF="/etc/systemd/system/${SVC}.service"
-REPO="anytls/anytls"
+REPO="anytls/anytls-go"
 
 info()   { echo -e "${GREEN}[INFO]${PLAIN} $1"; }
 warn()   { echo -e "${YELLOW}[WARN]${PLAIN} $1"; }
@@ -63,10 +63,10 @@ install_deps() {
         info "更新软件源..."
         apt-get update -y 2>&1 | grep -E "Hit|Get|Fetched|Reading" || true
         info "安装 curl wget jq..."
-        apt-get install -y curl wget jq 2>&1 | grep -E "is already|newly installed|Setting up" || true
+        apt-get install -y curl wget jq unzip 2>&1 | grep -E "is already|newly installed|Setting up" || true
     else
         info "安装 curl wget jq..."
-        yum install -y curl wget jq 2>&1 | grep -E "already installed|Installing|Complete" || true
+        yum install -y curl wget jq unzip 2>&1 | grep -E "already installed|Installing|Complete" || true
     fi
     info "依赖就绪"
 }
@@ -82,7 +82,8 @@ get_latest_version() {
 }
 
 download_anytls() {
-    local fn="anytls-server-linux-${ARCH}.tar.gz"
+    local ver_num="${LATEST_VER#v}"
+    local fn="anytls_${ver_num}_linux_${ARCH}.zip"
     local url="https://github.com/${REPO}/releases/download/${LATEST_VER}/${fn}"
     info "下载 AnyTLS ${LATEST_VER}..."
     mkdir -p "${DIR}"
@@ -90,18 +91,11 @@ download_anytls() {
         err "下载失败，请检查网络"
         exit 1
     fi
-    tar -xzf "/tmp/${fn}" -C "${DIR}/"
+    unzip -o "/tmp/${fn}" -d "${DIR}/" >/dev/null 2>&1
     rm -f "/tmp/${fn}"
-    # 查找二进制文件
     if [[ ! -f "${BIN}" ]]; then
-        local found
-        found=$(find "${DIR}" -type f -name "*anytls*" ! -name "*.json" ! -name "*.sh" | head -1)
-        if [[ -n "$found" ]]; then
-            mv "$found" "${BIN}"
-        else
-            err "二进制文件未找到"
-            exit 1
-        fi
+        err "二进制文件未找到"
+        exit 1
     fi
     chmod +x "${BIN}"
     info "下载完成"
